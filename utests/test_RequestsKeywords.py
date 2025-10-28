@@ -1,7 +1,13 @@
 import pytest
 from RequestsLibrary import RequestsLibrary
+from RequestsLibrary.utils import process_secrets
 from utests import mock
 
+try:
+    from robot.api.types import Secret
+    secret_type_supported = True
+except (ImportError, ModuleNotFoundError):
+    secret_type_supported = False
 
 # @mock.patch('RequestsLibrary.RequestsKeywords.requests.get')
 # def test_common_request_none_session(mocked_get):
@@ -90,14 +96,8 @@ def test_process_secrets_with_no_secrets():
     result = process_secrets(auth)
     assert result == ('user', 'password')
 
-
+@pytest.mark.skipif(not secret_type_supported, reason="Running on pre-7.4 robot")
 def test_process_secrets_with_secrets():
-    try:
-        from robot.api.types import Secret
-    except (ImportError, ModuleNotFoundError):
-        pytest.skip('Secret type not available in tested robot version')
-
-    from RequestsLibrary.utils import process_secrets
     secret_password = Secret('mypassword')
     auth = ('user', secret_password)
     result = process_secrets(auth)
@@ -105,13 +105,8 @@ def test_process_secrets_with_secrets():
     assert not isinstance(result[1], Secret)
 
 
+@pytest.mark.skipif(not secret_type_supported, reason="Running on pre-7.4 robot")
 def test_process_secrets_with_mixed_secrets():
-    try:
-        from robot.api.types import Secret
-    except (ImportError, ModuleNotFoundError):
-        pytest.skip('Secret type not available in tested robot version')
-
-    from RequestsLibrary.utils import process_secrets
     secret_user = Secret('myuser')
     secret_password = Secret('mypassword')
     auth = (secret_user, secret_password)
