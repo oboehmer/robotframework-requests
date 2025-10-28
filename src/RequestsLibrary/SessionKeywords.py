@@ -7,6 +7,10 @@ from requests.models import Response
 from requests.sessions import merge_setting
 from robot.api import logger
 from robot.api.deco import keyword
+try:
+    from robot.api.types import Secret
+except (ImportError, ModuleNotFoundError):
+    pass
 from robot.utils.asserts import assert_equal
 
 from RequestsLibrary import utils
@@ -21,6 +25,17 @@ try:
 except ImportError:
     pass
 
+def _process_secrets(auth):
+    try:
+        Secret
+    except NameError:
+        new_auth = auth
+    else:
+        new_auth = tuple(
+            a.value if isinstance(a, Secret) else a
+            for a in auth
+        )
+    return new_auth
 
 class SessionKeywords(RequestsKeywords):
     DEFAULT_RETRY_METHOD_LIST = RetryAdapter.get_default_allowed_methods()
@@ -172,7 +187,11 @@ class SessionKeywords(RequestsKeywords):
                               Note that max_retries must be greater than 0.
 
         """
-        auth = requests.auth.HTTPBasicAuth(*auth) if auth else None
+        if auth:
+            auth = _process_secrets(auth)
+            auth = requests.auth.HTTPBasicAuth(*auth)
+        else:
+            auth = None
 
         logger.info(
             "Creating Session using : alias=%s, url=%s, headers=%s, \
@@ -262,7 +281,11 @@ class SessionKeywords(RequestsKeywords):
                               eg. set to [502, 503] to retry requests if those status are returned.
                               Note that max_retries must be greater than 0.
         """
-        auth = requests.auth.HTTPBasicAuth(*auth) if auth else None
+        if auth:
+            auth = _process_secrets(auth)
+            auth = requests.auth.HTTPBasicAuth(*auth)
+        else:
+            auth = None
 
         logger.info(
             "Creating Session using : alias=%s, url=%s, headers=%s, \
@@ -372,6 +395,7 @@ class SessionKeywords(RequestsKeywords):
                     debug=%s "
             % (alias, url, headers, cookies, auth, timeout, proxies, verify, debug)
         )
+        auth = _process_secrets(auth)
 
         return self._create_session(
             alias=alias,
@@ -452,7 +476,11 @@ class SessionKeywords(RequestsKeywords):
                               eg. set to [502, 503] to retry requests if those status are returned.
                               Note that max_retries must be greater than 0.
         """
-        digest_auth = requests.auth.HTTPDigestAuth(*auth) if auth else None
+        if auth:
+            auth = _process_secrets(auth)
+            digest_auth = requests.auth.HTTPDigestAuth(*auth)
+        else:
+            digest_auth = None
 
         return self._create_session(
             alias=alias,
@@ -543,6 +571,7 @@ class SessionKeywords(RequestsKeywords):
                 " - expected 3, got {}".format(len(auth))
             )
         else:
+            auth = _process_secrets(auth)
             ntlm_auth = HttpNtlmAuth("{}\\{}".format(auth[0], auth[1]), auth[2])
             logger.info(
                 "Creating NTLM Session using : alias=%s, url=%s, \
