@@ -188,11 +188,6 @@ class SessionKeywords(RequestsKeywords):
 
         """
         auth = requests.auth.HTTPBasicAuth(*_process_secrets(auth)) if auth else None
-        # if auth:
-        #     auth = _process_secrets(auth)
-        #     auth = requests.auth.HTTPBasicAuth(*auth)
-        # else:
-        #     auth = None
 
         logger.info(
             "Creating Session using : alias=%s, url=%s, headers=%s, \
