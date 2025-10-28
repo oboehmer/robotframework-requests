@@ -84,17 +84,7 @@ def is_list_or_tuple(data):
 
 def process_secrets(auth):
     """
-    Process Secret types in auth tuples by extracting their values.
-
-    This function unwraps Robot Framework Secret objects from authentication
-    tuples, allowing credentials to be protected from logging while still
-    being usable for HTTP authentication.
-
-    ``auth`` Tuple or list containing authentication credentials, which may
-             include Secret objects (available in Robot Framework 7.0+)
-
-    Returns a tuple with Secret values unwrapped. If Secret type is not
-    available (older Robot Framework versions), returns the auth unchanged.
+    Process robot's Secret types in auth tuples by extracting their values.
     """
     try:
         Secret
