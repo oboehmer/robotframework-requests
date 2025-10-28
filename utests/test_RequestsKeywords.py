@@ -96,6 +96,7 @@ def test_process_secrets_with_no_secrets():
     result = process_secrets(auth)
     assert result == ('user', 'password')
 
+
 @pytest.mark.skipif(not secret_type_supported, reason="Running on pre-7.4 robot")
 def test_process_secrets_with_secrets():
     secret_password = Secret('mypassword')

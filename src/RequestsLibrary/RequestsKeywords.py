@@ -66,7 +66,7 @@ class RequestsKeywords(object):
         """
         Helper method that closes any open file descriptors.
         """
-        
+
         if is_list_or_tuple(files):
             files_descriptor_to_close = filter(
                 is_file_descriptor, [file[1][1] for file in files] + [data]
@@ -75,10 +75,10 @@ class RequestsKeywords(object):
             files_descriptor_to_close = filter(
                 is_file_descriptor, list(files.values()) + [data]
             )
-        
+
         for file_descriptor in files_descriptor_to_close:
             file_descriptor.close()
-    
+
     @staticmethod
     def _merge_url(session, uri):
         """

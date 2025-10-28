@@ -78,6 +78,7 @@ def is_string_type(data):
 def is_file_descriptor(fd):
     return isinstance(fd, io.IOBase)
 
+
 def is_list_or_tuple(data):
     return isinstance(data, (list, tuple))
 
