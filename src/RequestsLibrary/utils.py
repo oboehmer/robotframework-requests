@@ -5,6 +5,10 @@ import types
 from requests.status_codes import codes
 from requests.structures import CaseInsensitiveDict
 from robot.api import logger
+try:
+    from robot.api.types import Secret
+except (ImportError, ModuleNotFoundError):
+    pass
 
 from RequestsLibrary.compat import urlencode
 from RequestsLibrary.exceptions import UnknownStatusError
@@ -76,6 +80,33 @@ def is_file_descriptor(fd):
 
 def is_list_or_tuple(data):
     return isinstance(data, (list, tuple))
+
+
+def process_secrets(auth):
+    """
+    Process Secret types in auth tuples by extracting their values.
+
+    This function unwraps Robot Framework Secret objects from authentication
+    tuples, allowing credentials to be protected from logging while still
+    being usable for HTTP authentication.
+
+    ``auth`` Tuple or list containing authentication credentials, which may
+             include Secret objects (available in Robot Framework 7.0+)
+
+    Returns a tuple with Secret values unwrapped. If Secret type is not
+    available (older Robot Framework versions), returns the auth unchanged.
+    """
+    try:
+        Secret
+    except NameError:
+        new_auth = auth
+    else:
+        new_auth = tuple(
+            a.value if isinstance(a, Secret) else a
+            for a in auth
+        )
+    return new_auth
+
 
 def utf8_urlencode(data):
     if is_string_type(data):

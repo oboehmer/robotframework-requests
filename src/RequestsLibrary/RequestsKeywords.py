@@ -8,6 +8,7 @@ from RequestsLibrary.compat import urljoin
 from RequestsLibrary.utils import (
     is_list_or_tuple,
     is_file_descriptor,
+    process_secrets,
     warn_if_equal_symbol_in_url_session_less,
 )
 
@@ -29,6 +30,12 @@ class RequestsKeywords(object):
             request_function = getattr(session, "request")
         else:
             request_function = getattr(requests, "request")
+
+        # Process Secret types in auth parameter if present
+        if "auth" in kwargs and kwargs["auth"] is not None:
+            auth = kwargs["auth"]
+            if isinstance(auth, (list, tuple)):
+                kwargs["auth"] = process_secrets(auth)
 
         self._capture_output()
 

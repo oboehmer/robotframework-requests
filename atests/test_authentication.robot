@@ -57,3 +57,22 @@ Get With Digest Auth with Robot Secrets
     ${resp}=    GET On Session    httpbin    /digest-auth/auth/user/passwd
     Should Be Equal As Strings    ${resp.status_code}    200
     Should Be Equal As Strings    ${resp.json()['authenticated']}    True
+
+Session-less GET With Auth with Robot Secrets
+    [Tags]    robot-74    get    get-cert    session-less
+    Skip If    $SECRET_PASSWORD == "not-supported"
+    ...    msg=robot version does not support secrets
+    ${auth}=    Create List    user    ${SECRET_PASSWORD}
+    ${resp}=    GET    https://httpbin.org/basic-auth/user/passwd    auth=${auth}    verify=${CURDIR}${/}cacert.pem
+    Should Be Equal As Strings    ${resp.status_code}    200
+    Should Be Equal As Strings    ${resp.json()['authenticated']}    True
+
+Session-less POST With Auth with Robot Secrets
+    [Tags]    robot-74    post    post-cert    session-less
+    Skip If    $SECRET_PASSWORD == "not-supported"
+    ...    msg=robot version does not support secrets
+    ${auth}=    Create List    user    ${SECRET_PASSWORD}
+    ${data}=    Create Dictionary    test=data
+    ${resp}=    POST    https://httpbin.org/post    json=${data}    auth=${auth}    verify=${CURDIR}${/}cacert.pem
+    Should Be Equal As Strings    ${resp.status_code}    200
+    Should Be Equal As Strings    ${resp.json()['json']['test']}    data
