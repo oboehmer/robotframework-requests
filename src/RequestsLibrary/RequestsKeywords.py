@@ -31,11 +31,10 @@ class RequestsKeywords(object):
         else:
             request_function = getattr(requests, "request")
 
-        # Process Secret types in auth parameter if present
-        if "auth" in kwargs and kwargs["auth"] is not None:
-            auth = kwargs["auth"]
-            if isinstance(auth, (list, tuple)):
-                kwargs["auth"] = process_secrets(auth)
+        # Process robot's Secret types included in auth
+        auth = kwargs.get("auth")
+        if auth is not None and isinstance(auth, (list, tuple)):
+            kwargs["auth"] = process_secrets(auth)
 
         self._capture_output()
 
