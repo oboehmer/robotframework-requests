@@ -12,7 +12,9 @@ jobs:
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
         python-version: [ 3.8, 3.12 ]
-        robot-version: [ 6.1.1, 7.4b1 ]
+        # test with robot without and with Secret support? Not sure if
+        # it is worth it?
+        robot-version: [ 7.3.2, 7.4b1 ]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
