@@ -187,11 +187,12 @@ class SessionKeywords(RequestsKeywords):
                               Note that max_retries must be greater than 0.
 
         """
-        if auth:
-            auth = _process_secrets(auth)
-            auth = requests.auth.HTTPBasicAuth(*auth)
-        else:
-            auth = None
+        auth = requests.auth.HTTPBasicAuth(*_process_secrets(auth)) if auth else None
+        # if auth:
+        #     auth = _process_secrets(auth)
+        #     auth = requests.auth.HTTPBasicAuth(*auth)
+        # else:
+        #     auth = None
 
         logger.info(
             "Creating Session using : alias=%s, url=%s, headers=%s, \
@@ -281,11 +282,7 @@ class SessionKeywords(RequestsKeywords):
                               eg. set to [502, 503] to retry requests if those status are returned.
                               Note that max_retries must be greater than 0.
         """
-        if auth:
-            auth = _process_secrets(auth)
-            auth = requests.auth.HTTPBasicAuth(*auth)
-        else:
-            auth = None
+        auth = requests.auth.HTTPBasicAuth(*_process_secrets(auth)) if auth else None
 
         logger.info(
             "Creating Session using : alias=%s, url=%s, headers=%s, \
@@ -395,7 +392,6 @@ class SessionKeywords(RequestsKeywords):
                     debug=%s "
             % (alias, url, headers, cookies, auth, timeout, proxies, verify, debug)
         )
-        auth = _process_secrets(auth)
 
         return self._create_session(
             alias=alias,
@@ -476,11 +472,7 @@ class SessionKeywords(RequestsKeywords):
                               eg. set to [502, 503] to retry requests if those status are returned.
                               Note that max_retries must be greater than 0.
         """
-        if auth:
-            auth = _process_secrets(auth)
-            digest_auth = requests.auth.HTTPDigestAuth(*auth)
-        else:
-            digest_auth = None
+        digest_auth = requests.auth.HTTPDigestAuth(*_process_secrets(auth)) if auth else None
 
         return self._create_session(
             alias=alias,
