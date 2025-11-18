@@ -1,6 +1,7 @@
 from RequestsLibrary import RequestsLibrary
 from utests import mock
 
+
 # @mock.patch('RequestsLibrary.RequestsKeywords.requests.get')
 # def test_common_request_none_session(mocked_get):
 #     keywords = RequestsLibrary.RequestsKeywords()
