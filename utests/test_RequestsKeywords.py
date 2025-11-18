@@ -1,6 +1,4 @@
-import pytest
 from RequestsLibrary import RequestsLibrary
-from RequestsLibrary.utils import process_secrets
 from utests import mock
 
 # @mock.patch('RequestsLibrary.RequestsKeywords.requests.get')
