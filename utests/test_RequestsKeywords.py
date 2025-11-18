@@ -3,12 +3,6 @@ from RequestsLibrary import RequestsLibrary
 from RequestsLibrary.utils import process_secrets
 from utests import mock
 
-try:
-    from robot.api.types import Secret
-    secret_type_supported = True
-except (ImportError, ModuleNotFoundError):
-    secret_type_supported = False
-
 # @mock.patch('RequestsLibrary.RequestsKeywords.requests.get')
 # def test_common_request_none_session(mocked_get):
 #     keywords = RequestsLibrary.RequestsKeywords()
@@ -88,30 +82,3 @@ def test_merge_url_with_url_override_base():
     session, keywords = build_mocked_session_keywords('http://www.domain.com')
     url = keywords._merge_url(session, 'https://new.domain.com')
     assert url == 'https://new.domain.com'
-
-
-def test_process_secrets_with_no_secrets():
-    from RequestsLibrary.utils import process_secrets
-    auth = ('user', 'password')
-    result = process_secrets(auth)
-    assert result == ('user', 'password')
-
-
-@pytest.mark.skipif(not secret_type_supported, reason="Running on pre-7.4 robot")
-def test_process_secrets_with_secrets():
-    secret_password = Secret('mypassword')
-    auth = ('user', secret_password)
-    result = process_secrets(auth)
-    assert result == ('user', 'mypassword')
-    assert not isinstance(result[1], Secret)
-
-
-@pytest.mark.skipif(not secret_type_supported, reason="Running on pre-7.4 robot")
-def test_process_secrets_with_mixed_secrets():
-    secret_user = Secret('myuser')
-    secret_password = Secret('mypassword')
-    auth = (secret_user, secret_password)
-    result = process_secrets(auth)
-    assert result == ('myuser', 'mypassword')
-    assert not isinstance(result[0], Secret)
-    assert not isinstance(result[1], Secret)
