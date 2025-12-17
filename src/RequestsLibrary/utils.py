@@ -7,8 +7,9 @@ from requests.structures import CaseInsensitiveDict
 from robot.api import logger
 try:
     from robot.api.types import Secret
+    robot_has_secret = True
 except (ImportError, ModuleNotFoundError):
-    pass
+    robot_has_secret = False
 
 from RequestsLibrary.compat import urlencode
 from RequestsLibrary.exceptions import UnknownStatusError
@@ -87,15 +88,13 @@ def process_secrets(auth):
     """
     Process robot's Secret types in auth tuples by extracting their values.
     """
-    try:
-        Secret
-    except NameError:
-        new_auth = auth
-    else:
+    if robot_has_secret:
         new_auth = tuple(
             a.value if isinstance(a, Secret) else a
             for a in auth
         )
+    else:
+        new_auth = auth
     return new_auth
 
 
