@@ -6,6 +6,7 @@ from robot.libraries.BuiltIn import BuiltIn
 from RequestsLibrary import log
 from RequestsLibrary.compat import urljoin
 from RequestsLibrary.utils import (
+    has_secrets,
     is_list_or_tuple,
     is_file_descriptor,
     process_secrets,
@@ -33,7 +34,9 @@ class RequestsKeywords(object):
 
         # Process robot's Secret types included in auth
         auth = kwargs.get("auth")
+        contains_secrets = False
         if auth is not None and isinstance(auth, (list, tuple)):
+            contains_secrets = has_secrets(auth)
             kwargs["auth"] = process_secrets(auth)
 
         self._capture_output()
@@ -46,7 +49,7 @@ class RequestsKeywords(object):
             **kwargs
         )
 
-        log.log_request(resp)
+        log.log_request(resp, has_secrets=contains_secrets)
         self._print_debug()
 
         log.log_response(resp)
