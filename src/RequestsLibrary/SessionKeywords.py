@@ -174,7 +174,6 @@ class SessionKeywords(RequestsKeywords):
                               Note that max_retries must be greater than 0.
 
         """
-        # Check if auth contains secrets and process in one pass
         if auth:
             processed_auth, session_has_secrets = check_and_process_secrets(auth)
             auth = requests.auth.HTTPBasicAuth(*processed_auth)
@@ -203,7 +202,6 @@ class SessionKeywords(RequestsKeywords):
             retry_status_list=retry_status_list,
             retry_method_list=retry_method_list,
         )
-        # Store whether this session has secrets
         session._has_secrets = session_has_secrets
         return session
 
@@ -272,7 +270,6 @@ class SessionKeywords(RequestsKeywords):
                               eg. set to [502, 503] to retry requests if those status are returned.
                               Note that max_retries must be greater than 0.
         """
-        # Check if auth contains secrets and process in one pass
         if auth:
             processed_auth, session_has_secrets = check_and_process_secrets(auth)
             auth = requests.auth.HTTPBasicAuth(*processed_auth)
@@ -315,7 +312,6 @@ class SessionKeywords(RequestsKeywords):
         )
 
         session.cert = tuple(client_certs)
-        # Store whether this session has secrets
         session._has_secrets = session_has_secrets
         return session
 
@@ -469,7 +465,6 @@ class SessionKeywords(RequestsKeywords):
                               eg. set to [502, 503] to retry requests if those status are returned.
                               Note that max_retries must be greater than 0.
         """
-        # Check if auth contains secrets and process in one pass
         if auth:
             processed_auth, session_has_secrets = check_and_process_secrets(auth)
             digest_auth = requests.auth.HTTPDigestAuth(*processed_auth)
@@ -493,7 +488,6 @@ class SessionKeywords(RequestsKeywords):
             retry_status_list=retry_status_list,
             retry_method_list=retry_method_list,
         )
-        # Store whether this session has secrets
         session._has_secrets = session_has_secrets
         return session
 
@@ -569,7 +563,6 @@ class SessionKeywords(RequestsKeywords):
                 " - expected 3, got {}".format(len(auth))
             )
         else:
-            # Check if auth contains secrets and process in one pass
             processed_auth, session_has_secrets = check_and_process_secrets(auth)
             ntlm_auth = HttpNtlmAuth("{}\\{}".format(processed_auth[0], processed_auth[1]), processed_auth[2])
             logger.info(
@@ -605,7 +598,6 @@ class SessionKeywords(RequestsKeywords):
                 retry_status_list=retry_status_list,
                 retry_method_list=retry_method_list,
             )
-            # Store whether this session has secrets
             session._has_secrets = session_has_secrets
             return session
 
