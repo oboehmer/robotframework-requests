@@ -39,7 +39,7 @@ Get With Auth with Robot Secrets
     ...    msg=robot version does not support secrets
     ${auth}=    Create List    user     ${SECRET_PASSWORD}
     Create Session    authsession    ${HTTP_LOCAL_SERVER}    auth=${auth}
-    ${resp}=    GET On Session    authsession    /basic-auth/user/passwd
+    ${resp}=    GET On Session    authsession    /basic-auth/user/secret_passwd
     Should Be Equal As Strings    ${resp.status_code}    200
     Should Be Equal As Strings    ${resp.json()['authenticated']}    True
 
@@ -53,7 +53,7 @@ Get With Digest Auth with Robot Secrets
     ...    ${HTTP_LOCAL_SERVER}
     ...    auth=${auth}
     ...    debug=3
-    ${resp}=    GET On Session    authsession    /digest-auth/auth/user/passwd
+    ${resp}=    GET On Session    authsession    /digest-auth/auth/user/secret_passwd
     Should Be Equal As Strings    ${resp.status_code}    200
     Should Be Equal As Strings    ${resp.json()['authenticated']}    True
 
@@ -62,6 +62,6 @@ Session-less GET With Auth with Robot Secrets
     Skip If    $SECRET_PASSWORD == "not-supported"
     ...    msg=robot version does not support secrets
     ${auth}=    Create List    user    ${SECRET_PASSWORD}
-    ${resp}=    GET    ${HTTP_LOCAL_SERVER}/basic-auth/user/passwd    auth=${auth}
+    ${resp}=    GET    ${HTTP_LOCAL_SERVER}/basic-auth/user/secret_passwd    auth=${auth}
     Should Be Equal As Strings    ${resp.status_code}    200
     Should Be Equal As Strings    ${resp.json()['authenticated']}    True
