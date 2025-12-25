@@ -6,10 +6,9 @@ from robot.libraries.BuiltIn import BuiltIn
 from RequestsLibrary import log
 from RequestsLibrary.compat import urljoin
 from RequestsLibrary.utils import (
-    has_secrets,
+    check_and_process_secrets,
     is_list_or_tuple,
     is_file_descriptor,
-    process_secrets,
     warn_if_equal_symbol_in_url_session_less,
 )
 
@@ -24,6 +23,7 @@ class RequestsKeywords(object):
         self.timeout = None
         self.cookies = None
         self.last_response = None
+        self._request_has_secrets = False
 
     def _common_request(self, method, session, uri, **kwargs):
 
@@ -32,12 +32,17 @@ class RequestsKeywords(object):
         else:
             request_function = getattr(requests, "request")
 
-        # Process robot's Secret types included in auth
         auth = kwargs.get("auth")
-        contains_secrets = False
         if auth is not None and isinstance(auth, (list, tuple)):
-            contains_secrets = has_secrets(auth)
-            kwargs["auth"] = process_secrets(auth)
+            kwargs["auth"], contains_secrets = check_and_process_secrets(auth)
+        else:
+            contains_secrets = False
+
+        if session and hasattr(session, '_has_secrets'):
+            contains_secrets = contains_secrets or session._has_secrets
+
+        # Store secrets flag for _print_debug to access
+        self._request_has_secrets = contains_secrets
 
         self._capture_output()
 

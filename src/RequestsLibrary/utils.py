@@ -104,6 +104,30 @@ def process_secrets(auth):
     return new_auth
 
 
+def check_and_process_secrets(auth):
+    """
+    Check if auth contains secrets and process them in a single pass.
+
+    Returns:
+        tuple: (processed_auth, has_secrets_flag)
+    """
+    if not auth or not isinstance(auth, (list, tuple)):
+        return auth, False
+
+    if robot_supports_secrets:
+        has_secrets_flag = False
+        processed = []
+        for a in auth:
+            if isinstance(a, Secret):
+                has_secrets_flag = True
+                processed.append(a.value)
+            else:
+                processed.append(a)
+        return tuple(processed), has_secrets_flag
+    else:
+        return auth, False
+
+
 def utf8_urlencode(data):
     if is_string_type(data):
         return data.encode("utf-8")

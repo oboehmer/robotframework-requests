@@ -1,4 +1,5 @@
 import logging
+import re
 import sys
 
 import requests
@@ -12,7 +13,8 @@ from robot.utils.asserts import assert_equal
 from RequestsLibrary import utils
 from RequestsLibrary.compat import RetryAdapter, httplib
 from RequestsLibrary.exceptions import InvalidExpectedStatus, InvalidResponse
-from RequestsLibrary.utils import is_string_type, process_secrets
+from RequestsLibrary.log import AUTHORIZATION
+from RequestsLibrary.utils import is_string_type, check_and_process_secrets
 
 from .RequestsKeywords import RequestsKeywords
 
@@ -172,7 +174,12 @@ class SessionKeywords(RequestsKeywords):
                               Note that max_retries must be greater than 0.
 
         """
-        auth = requests.auth.HTTPBasicAuth(*process_secrets(auth)) if auth else None
+        # Check if auth contains secrets and process in one pass
+        if auth:
+            processed_auth, session_has_secrets = check_and_process_secrets(auth)
+            auth = requests.auth.HTTPBasicAuth(*processed_auth)
+        else:
+            session_has_secrets = False
 
         logger.info(
             "Creating Session using : alias=%s, url=%s, headers=%s, \
@@ -180,7 +187,7 @@ class SessionKeywords(RequestsKeywords):
                     debug=%s "
             % (alias, url, headers, cookies, auth, timeout, proxies, verify, debug)
         )
-        return self._create_session(
+        session = self._create_session(
             alias=alias,
             url=url,
             headers=headers,
@@ -196,6 +203,9 @@ class SessionKeywords(RequestsKeywords):
             retry_status_list=retry_status_list,
             retry_method_list=retry_method_list,
         )
+        # Store whether this session has secrets
+        session._has_secrets = session_has_secrets
+        return session
 
     @keyword("Create Client Cert Session")
     def create_client_cert_session(
@@ -262,7 +272,12 @@ class SessionKeywords(RequestsKeywords):
                               eg. set to [502, 503] to retry requests if those status are returned.
                               Note that max_retries must be greater than 0.
         """
-        auth = requests.auth.HTTPBasicAuth(*process_secrets(auth)) if auth else None
+        # Check if auth contains secrets and process in one pass
+        if auth:
+            processed_auth, session_has_secrets = check_and_process_secrets(auth)
+            auth = requests.auth.HTTPBasicAuth(*processed_auth)
+        else:
+            session_has_secrets = False
 
         logger.info(
             "Creating Session using : alias=%s, url=%s, headers=%s, \
@@ -300,6 +315,8 @@ class SessionKeywords(RequestsKeywords):
         )
 
         session.cert = tuple(client_certs)
+        # Store whether this session has secrets
+        session._has_secrets = session_has_secrets
         return session
 
     @keyword("Create Custom Session")
@@ -452,9 +469,15 @@ class SessionKeywords(RequestsKeywords):
                               eg. set to [502, 503] to retry requests if those status are returned.
                               Note that max_retries must be greater than 0.
         """
-        digest_auth = requests.auth.HTTPDigestAuth(*process_secrets(auth)) if auth else None
+        # Check if auth contains secrets and process in one pass
+        if auth:
+            processed_auth, session_has_secrets = check_and_process_secrets(auth)
+            digest_auth = requests.auth.HTTPDigestAuth(*processed_auth)
+        else:
+            digest_auth = None
+            session_has_secrets = False
 
-        return self._create_session(
+        session = self._create_session(
             alias=alias,
             url=url,
             headers=headers,
@@ -470,6 +493,9 @@ class SessionKeywords(RequestsKeywords):
             retry_status_list=retry_status_list,
             retry_method_list=retry_method_list,
         )
+        # Store whether this session has secrets
+        session._has_secrets = session_has_secrets
+        return session
 
     @keyword("Create Ntlm Session")
     def create_ntlm_session(
@@ -543,8 +569,9 @@ class SessionKeywords(RequestsKeywords):
                 " - expected 3, got {}".format(len(auth))
             )
         else:
-            auth = process_secrets(auth)
-            ntlm_auth = HttpNtlmAuth("{}\\{}".format(auth[0], auth[1]), auth[2])
+            # Check if auth contains secrets and process in one pass
+            processed_auth, session_has_secrets = check_and_process_secrets(auth)
+            ntlm_auth = HttpNtlmAuth("{}\\{}".format(processed_auth[0], processed_auth[1]), processed_auth[2])
             logger.info(
                 "Creating NTLM Session using : alias=%s, url=%s, \
                         headers=%s, cookies=%s, ntlm_auth=%s, timeout=%s, \
@@ -562,7 +589,7 @@ class SessionKeywords(RequestsKeywords):
                 )
             )
 
-            return self._create_session(
+            session = self._create_session(
                 alias=alias,
                 url=url,
                 headers=headers,
@@ -578,6 +605,9 @@ class SessionKeywords(RequestsKeywords):
                 retry_status_list=retry_status_list,
                 retry_method_list=retry_method_list,
             )
+            # Store whether this session has secrets
+            session._has_secrets = session_has_secrets
+            return session
 
     @keyword("Session Exists")
     def session_exists(self, alias):
@@ -657,4 +687,14 @@ class SessionKeywords(RequestsKeywords):
             debug_info = "\n".join(
                 [ll.rstrip() for ll in debug_info.splitlines() if ll.strip()]
             )
+
+            # Mask Authorization header in debug output when secrets are used
+            if self._request_has_secrets:
+                debug_info = re.sub(
+                    rf'({AUTHORIZATION}:)\s*([^\n]+)',
+                    r'\1 *****',
+                    debug_info,
+                    flags=re.IGNORECASE
+                )
+
             logger.debug(debug_info)
