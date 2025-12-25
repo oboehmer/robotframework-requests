@@ -4,7 +4,7 @@ import pytest
 from requests import Session
 
 from RequestsLibrary import RequestsLibrary
-from RequestsLibrary.utils import is_file_descriptor, merge_headers, process_secrets
+from RequestsLibrary.utils import is_file_descriptor, merge_headers, check_and_process_secrets
 from utests import SCRIPT_DIR
 from utests import mock
 
@@ -80,27 +80,42 @@ def test_warn_that_url_is_missing(mocked_logger, mocked_keywords):
     mocked_logger.warn.assert_called()
 
 
-def test_process_secrets_with_no_secrets():
+def test_check_and_process_secrets_with_no_secrets():
     auth = ('user', 'password')
-    result = process_secrets(auth)
-    assert result == ('user', 'password')
+    processed_auth, has_secrets = check_and_process_secrets(auth)
+    assert processed_auth == ('user', 'password')
+    assert has_secrets is False
 
 
 @pytest.mark.skipif(not secret_type_supported, reason="Running on pre-7.4 robot")
-def test_process_secrets_with_secrets():
+def test_check_and_process_secrets_with_secrets():
     secret_password = Secret('mypassword')
     auth = ('user', secret_password)
-    result = process_secrets(auth)
-    assert result == ('user', 'mypassword')
-    assert not isinstance(result[1], Secret)
+    processed_auth, has_secrets = check_and_process_secrets(auth)
+    assert processed_auth == ('user', 'mypassword')
+    assert has_secrets is True
+    assert not isinstance(processed_auth[1], Secret)
 
 
 @pytest.mark.skipif(not secret_type_supported, reason="Running on pre-7.4 robot")
-def test_process_secrets_with_mixed_secrets():
+def test_check_and_process_secrets_with_mixed_secrets():
     secret_user = Secret('myuser')
     secret_password = Secret('mypassword')
     auth = (secret_user, secret_password)
-    result = process_secrets(auth)
-    assert result == ('myuser', 'mypassword')
-    assert not isinstance(result[0], Secret)
-    assert not isinstance(result[1], Secret)
+    processed_auth, has_secrets = check_and_process_secrets(auth)
+    assert processed_auth == ('myuser', 'mypassword')
+    assert has_secrets is True
+    assert not isinstance(processed_auth[0], Secret)
+    assert not isinstance(processed_auth[1], Secret)
+
+
+def test_check_and_process_secrets_with_none():
+    processed_auth, has_secrets = check_and_process_secrets(None)
+    assert processed_auth is None
+    assert has_secrets is False
+
+
+def test_check_and_process_secrets_with_empty_list():
+    processed_auth, has_secrets = check_and_process_secrets([])
+    assert processed_auth == []
+    assert has_secrets is False
