@@ -84,29 +84,9 @@ def is_list_or_tuple(data):
     return isinstance(data, (list, tuple))
 
 
-def has_secrets(auth):
-    if robot_supports_secrets and auth is not None and isinstance(auth, (list, tuple)):
-        return any(isinstance(a, Secret) for a in auth)
-    return False
-
-
-def process_secrets(auth):
-    """
-    Process robot's Secret types in auth tuples by extracting their values.
-    """
-    if robot_supports_secrets:
-        new_auth = tuple(
-            a.value if isinstance(a, Secret) else a
-            for a in auth
-        )
-    else:
-        new_auth = auth
-    return new_auth
-
-
 def check_and_process_secrets(auth):
     """
-    Check if auth contains secrets and process them in a single pass.
+    Check if auth contains secrets and process them
 
     Returns:
         tuple: (processed_auth, has_secrets_flag)
