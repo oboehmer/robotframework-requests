@@ -24,6 +24,13 @@ class RequestsKeywords(object):
         self.cookies = None
         self.last_response = None
         self._request_has_secrets = False
+        self._session_secrets = {}  # Maps session object ID to secrets flag
+
+    def _get_session_secrets_flag(self, session):
+        """Get the secrets flag for a session object"""
+        if not session:
+            return False
+        return self._session_secrets.get(id(session), False)
 
     def _common_request(self, method, session, uri, **kwargs):
 
@@ -38,8 +45,9 @@ class RequestsKeywords(object):
         else:
             contains_secrets = False
 
-        if session and hasattr(session, '_has_secrets'):
-            contains_secrets = contains_secrets or session._has_secrets
+        if session:
+            # Check if the session was created with robot secrets
+            contains_secrets = contains_secrets or self._get_session_secrets_flag(session)
 
         # Store secrets flag for _print_debug to access
         self._request_has_secrets = contains_secrets

@@ -27,6 +27,10 @@ except ImportError:
 class SessionKeywords(RequestsKeywords):
     DEFAULT_RETRY_METHOD_LIST = RetryAdapter.get_default_allowed_methods()
 
+    def _set_session_secrets_flag(self, session, has_secrets):
+        """Store the secrets flag for a session object using its id as key"""
+        self._session_secrets[id(session)] = has_secrets
+
     def _create_session(
         self,
         alias,
@@ -202,7 +206,7 @@ class SessionKeywords(RequestsKeywords):
             retry_status_list=retry_status_list,
             retry_method_list=retry_method_list,
         )
-        session._has_secrets = session_has_secrets
+        self._set_session_secrets_flag(session, session_has_secrets)
         return session
 
     @keyword("Create Client Cert Session")
@@ -312,7 +316,7 @@ class SessionKeywords(RequestsKeywords):
         )
 
         session.cert = tuple(client_certs)
-        session._has_secrets = session_has_secrets
+        self._set_session_secrets_flag(session, session_has_secrets)
         return session
 
     @keyword("Create Custom Session")
@@ -488,7 +492,7 @@ class SessionKeywords(RequestsKeywords):
             retry_status_list=retry_status_list,
             retry_method_list=retry_method_list,
         )
-        session._has_secrets = session_has_secrets
+        self._set_session_secrets_flag(session, session_has_secrets)
         return session
 
     @keyword("Create Ntlm Session")
@@ -598,7 +602,7 @@ class SessionKeywords(RequestsKeywords):
                 retry_status_list=retry_status_list,
                 retry_method_list=retry_method_list,
             )
-            session._has_secrets = session_has_secrets
+            self._set_session_secrets_flag(session, session_has_secrets)
             return session
 
     @keyword("Session Exists")
